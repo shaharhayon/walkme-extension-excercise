@@ -17,7 +17,7 @@ class TimeoutManager {
     }
 
     private _timeout: number = 0;
-    private _cooldown: number = 0;
+    private _session_cooldown: number = 0;
 
     constructor() {}
 
@@ -55,9 +55,9 @@ class TimeoutManager {
             this._onSessionTimeout();
             this._sessionExceeded = true;
             console.log('Cooldown initiated');
-            this._cooldown = setTimeout(() => {
+            this._session_cooldown = setTimeout(() => {
                 this._sessionExceeded = false;
-                clearTimeout(this._cooldown);
+                clearTimeout(this._session_cooldown);
             }, SESSION_COOLDOWN * 1000);
         }
         console.log('[' + this._counter.session_seconds + ']' + 'tabIds: ' + JSON.stringify(await GetTabList()));
@@ -101,13 +101,18 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
     RemoveTabFromList(tabId);
 });
 
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+    if (details.url.includes(TRACKED_URL) &&
+        !timeoutManager.AllowedStatus) {
+            chrome.tabs.update(details.tabId, {url: 'https://www.google.com'});
+            console.log('Cooldown invoked. Redirecting to Google');
+    }
+})
     
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-    // const tabIds = await _getRelevantTabArr();
     const tabIds = (await chrome.storage.local.get(['tabIds']))['tabIds'];
     if (!tabIds.includes(tabId) ||
         (changeInfo && changeInfo.url?.includes(TRACKED_URL))) {
-            console.log('returning');
             return;
     }
     RemoveTabFromList(tabId);
@@ -126,18 +131,12 @@ async function SetTabList(tabIds: number[]): Promise<void> {
 
 async function AddTabToList(tabId: number): Promise<void> {
     const tabIds = await GetTabList();
-    console.log('tabids before: ' + JSON.stringify(tabIds));
     tabIds.push(tabId);
     await SetTabList(tabIds);
-    const after = (await chrome.storage.local.get(['tabIds']))['tabIds'];
-    console.log(JSON.stringify('tabids after: ' + after));
 }
 
 async function RemoveTabFromList(tabId: number): Promise<void> {
     const tabIds = await GetTabList();
-    console.log('executing');
     tabIds.splice(tabIds.indexOf(tabId), 1);
     await SetTabList(tabIds);
-    const after = (await chrome.storage.local.get(['tabIds']))['tabIds'];
-    console.log('tabids after: ' + JSON.stringify(after));
 }
