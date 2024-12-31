@@ -1,10 +1,20 @@
-import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import { useState } from 'react'
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const [ color, setColor] = useState('red');
+  const onColorChanged = async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    chrome.scripting.executeScript<string[], void>({
+      target: {tabId: tab.id!},
+      args: [color],
+      func: (color) => {
+        document.body.style.backgroundColor = color;
+    }});
+  }
 
   return (
     <>
@@ -18,9 +28,11 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+        <input type="color" value={color} onChange={(e) => {
+          setColor(e.currentTarget.value);
+          onColorChanged();
+        }} />
+        {/* <button onClick={onClick}>Click Me</button> */}
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
