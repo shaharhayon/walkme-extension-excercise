@@ -1,9 +1,95 @@
 // import { useState } from "react";
 const TRACKED_URL = 'facebook.com';
+const SESSION_TIMEOUT = 5 * 1;
+const SESSION_COOLDOWN = 5 * 1;
+const DAILY_TIMEOUT = 60 * 60;
 
 const _tabIds = new Set<number>();
-// _tabIds.add(1);
-chrome.storage.local.set({tabIds: Array.from(_tabIds)});
+SetTabList(Array.from(_tabIds));
+
+
+class TimeoutManager {
+    private _dailyExceeded: boolean = false;
+    private _sessionExceeded: boolean = false;
+    private _counter = {
+        session_seconds: 0,
+        total_seconds: 0
+    }
+
+    private _timeout: number = 0;
+    private _cooldown: number = 0;
+
+    constructor() {}
+
+    public get AllowedStatus(): boolean {
+        return !(this._dailyExceeded || this._sessionExceeded);
+    }
+
+    public StartSession(): void {
+        this._onSessionStart();
+    }
+
+    public EndSession(): void {
+        this._onSessionEnd();
+    }
+
+    private _onSessionStart(){
+        this._timeout = setInterval(this._checkConditions.bind(this), 1000);
+    }
+
+    private _onSessionEnd(){
+        clearInterval(this._timeout);
+        this._counter.total_seconds += this._counter.session_seconds;
+        this._counter.session_seconds = 0;
+        console.log('total_seconds: ' + this._counter.total_seconds);
+    }
+
+    private async _checkConditions(){
+        this._counter.session_seconds++;
+        if (this._counter.total_seconds >= DAILY_TIMEOUT){
+            console.log('daily timeout');
+            this._onSessionTimeout();
+            this._dailyExceeded = true;
+        }
+        if (this._counter.session_seconds >= SESSION_TIMEOUT){
+            this._onSessionTimeout();
+            this._sessionExceeded = true;
+            console.log('Cooldown initiated');
+            this._cooldown = setTimeout(() => {
+                this._sessionExceeded = false;
+                clearTimeout(this._cooldown);
+            }, SESSION_COOLDOWN * 1000);
+        }
+        console.log('[' + this._counter.session_seconds + ']' + 'tabIds: ' + JSON.stringify(await GetTabList()));
+    }
+
+    private async _onSessionTimeout(){
+        const tabList = await GetTabList();
+        for (const tabId of tabList) {
+            chrome.scripting.executeScript<string[], void>({
+                target: {tabId: tabId!},
+                func: () => {
+                    alert('You have been on Facebook for too long. Please get back to work.');
+                }});
+            chrome.tabs.update(tabId, {url: 'https://www.google.com'});
+        }
+        this._onSessionEnd();
+    }
+}
+
+const timeoutManager = new TimeoutManager();
+
+chrome.storage.local.onChanged.addListener((changes) => {
+    if (
+        (changes.tabIds['newValue'] as number[]).length !== 0 &&
+        (changes.tabIds['oldValue'] as number[]).length === 0) {
+            timeoutManager.StartSession();
+    } else if (
+        (changes.tabIds['newValue'] as number[]).length === 0 &&
+        (changes.tabIds['oldValue'] as number[]).length !== 0) {
+            timeoutManager.EndSession();
+    }
+});
 
 chrome.webNavigation.onCompleted.addListener(async (details) => {
     if(details.url.includes(TRACKED_URL)){
