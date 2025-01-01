@@ -13,7 +13,7 @@ export default defineConfig({
         format: 'esm',
         // entryFileNames: 'service-worker.js'
         entryFileNames(chunkInfo) {
-          return chunkInfo.name === 'service-worker' ? 'service-worker.js' : '[name]-[hash].js';
+          return chunkInfo.name === 'ServiceWorker' ? 'ServiceWorker.js' : '[name]-[hash].js';
         },
       },
     }

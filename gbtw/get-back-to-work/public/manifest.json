@@ -3,7 +3,7 @@
     "name": "Get Back to Work",
     "version": "1.0.0",
     "background": {
-        "service_worker": "service-worker.js",
+        "service_worker": "ServiceWorker.js",
         "type": "module"
     },
     "permissions": [
