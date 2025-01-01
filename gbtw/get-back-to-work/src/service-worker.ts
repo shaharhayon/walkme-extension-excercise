@@ -1,12 +1,12 @@
 // import { useState } from "react";
-const TRACKED_URL = 'facebook.com';
-const SESSION_TIMEOUT = 70;
-const SESSION_COOLDOWN = 5;
-const DAILY_TIMEOUT = 60 * 60;
+// const TRACKED_URL = 'facebook.com';
+// const SESSION_TIMEOUT = 70;
+// const SESSION_COOLDOWN = 5;
+// const DAILY_TIMEOUT = 60 * 60;
+import Constants from "./constants";
 
 const _tabIds = new Set<number>();
 SetTabList(Array.from(_tabIds));
-
 
 class TimeoutManager {
     private _dailyExceeded: boolean = false;
@@ -46,19 +46,19 @@ class TimeoutManager {
 
     private async _checkConditions(){
         this._counter.session_seconds++;
-        if (this._counter.total_seconds >= DAILY_TIMEOUT){
+        if (this._counter.total_seconds >= Constants.DAILY_TIMEOUT){
             console.log('daily timeout');
             this._onSessionTimeout();
             this._dailyExceeded = true;
         }
-        if (this._counter.session_seconds >= SESSION_TIMEOUT){
+        if (this._counter.session_seconds >= Constants.SESSION_TIMEOUT){
             this._onSessionTimeout();
             this._sessionExceeded = true;
             console.log('Cooldown initiated');
             this._session_cooldown = setTimeout(() => {
                 this._sessionExceeded = false;
                 clearTimeout(this._session_cooldown);
-            }, SESSION_COOLDOWN * 1000);
+            }, Constants.SESSION_COOLDOWN * 1000);
         }
 
         for (const tabId of await GetTabList()) {
@@ -84,7 +84,7 @@ class TimeoutManager {
         const padLeft = (string: string, pad = '0', length = 2) => {
             return (new Array(length + 1).join(pad) + string).slice(-length);
         }
-        const timeLeft = SESSION_TIMEOUT - this._counter.session_seconds;
+        const timeLeft = Constants.SESSION_TIMEOUT - this._counter.session_seconds;
         const minutes = Math.floor(timeLeft / 60)
         const seconds = timeLeft - minutes * 60;
         return `${padLeft(minutes.toString())}:${padLeft(seconds.toString())}`;
@@ -107,7 +107,7 @@ chrome.storage.local.onChanged.addListener((changes) => {
 });
 
 chrome.webNavigation.onCompleted.addListener(async (details) => {
-    if(details.url.includes(TRACKED_URL)){
+    if(details.url.includes(Constants.TRACKED_URL)){
         AddTabToList(details.tabId);
     }
 });
@@ -117,7 +117,7 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 });
 
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
-    if (details.url.includes(TRACKED_URL) &&
+    if (details.url.includes(Constants.TRACKED_URL) &&
         !timeoutManager.AllowedStatus) {
             chrome.tabs.update(details.tabId, {url: 'https://www.google.com'});
             console.log('Cooldown invoked. Redirecting to Google');
@@ -127,7 +127,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
     const tabIds = (await chrome.storage.local.get(['tabIds']))['tabIds'];
     if (!tabIds.includes(tabId) ||
-        (changeInfo && changeInfo.url?.includes(TRACKED_URL))) {
+        (changeInfo && changeInfo.url?.includes(Constants.TRACKED_URL))) {
             return;
     }
     RemoveTabFromList(tabId);
