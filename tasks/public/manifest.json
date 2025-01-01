@@ -1,0 +1,21 @@
+{
+    "manifest_version": 3,
+    "name": "Tasks",
+    "version": "1.0.0",
+    "background": {
+        "service_worker": "ServiceWorker.js",
+        "type": "module"
+    },
+    "permissions": [
+        "webNavigation",
+        "tabs",
+        "storage",
+        "scripting"
+    ],
+    "host_permissions": [
+        "http://*/*",
+        "https://*/*",
+        "http://www.facebook.com/*",
+        "https://www.facebook.com/*"
+    ]
+}
