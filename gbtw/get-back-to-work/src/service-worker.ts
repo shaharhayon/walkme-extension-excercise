@@ -1,7 +1,7 @@
 // import { useState } from "react";
 const TRACKED_URL = 'facebook.com';
-const SESSION_TIMEOUT = 5 * 1;
-const SESSION_COOLDOWN = 5 * 1;
+const SESSION_TIMEOUT = 70;
+const SESSION_COOLDOWN = 5;
 const DAILY_TIMEOUT = 60 * 60;
 
 const _tabIds = new Set<number>();
@@ -60,7 +60,11 @@ class TimeoutManager {
                 clearTimeout(this._session_cooldown);
             }, SESSION_COOLDOWN * 1000);
         }
-        console.log('[' + this._counter.session_seconds + ']' + 'tabIds: ' + JSON.stringify(await GetTabList()));
+
+        for (const tabId of await GetTabList()) {
+            chrome.tabs.sendMessage(tabId, {action: 'updateTimer', text: this._generateTimerText()});
+        }
+        // console.log('[' + this._counter.session_seconds + ']' + 'tabIds: ' + JSON.stringify(await GetTabList()));
     }
 
     private async _onSessionTimeout(){
@@ -75,6 +79,16 @@ class TimeoutManager {
         }
         this._onSessionEnd();
     }
+
+    private _generateTimerText(): string {
+        const padLeft = (string: string, pad = '0', length = 2) => {
+            return (new Array(length + 1).join(pad) + string).slice(-length);
+        }
+        const timeLeft = SESSION_TIMEOUT - this._counter.session_seconds;
+        const minutes = Math.floor(timeLeft / 60)
+        const seconds = timeLeft - minutes * 60;
+        return `${padLeft(minutes.toString())}:${padLeft(seconds.toString())}`;
+    }
 }
 
 const timeoutManager = new TimeoutManager();
@@ -84,6 +98,7 @@ chrome.storage.local.onChanged.addListener((changes) => {
         (changes.tabIds['newValue'] as number[]).length !== 0 &&
         (changes.tabIds['oldValue'] as number[]).length === 0) {
             timeoutManager.StartSession();
+            // ShowTimer();
     } else if (
         (changes.tabIds['newValue'] as number[]).length === 0 &&
         (changes.tabIds['oldValue'] as number[]).length !== 0) {
@@ -133,10 +148,43 @@ async function AddTabToList(tabId: number): Promise<void> {
     const tabIds = await GetTabList();
     tabIds.push(tabId);
     await SetTabList(tabIds);
+    await ShowTimer();
 }
 
 async function RemoveTabFromList(tabId: number): Promise<void> {
     const tabIds = await GetTabList();
     tabIds.splice(tabIds.indexOf(tabId), 1);
     await SetTabList(tabIds);
+}
+
+async function ShowTimer(): Promise<void> {
+    const tabIds = await GetTabList();
+    for (const tabId of tabIds) {
+        chrome.scripting.executeScript<string[], void>({
+            target: {tabId: tabId!},
+            func: () => {
+                const overlay = document.createElement('div');
+                overlay.style.position = "fixed";
+                overlay.style.top = "10px";
+                overlay.style.right = "10px";
+                overlay.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+                overlay.style.color = "white";
+                overlay.style.fontSize = "14px";
+                overlay.style.fontWeight = "bold";
+                overlay.style.padding = "5px 10px";
+                overlay.style.borderRadius = "5px";
+                overlay.style.zIndex = "9999";
+                overlay.style.pointerEvents = "none";
+                overlay.textContent = "--:--";
+
+                document.body.appendChild(overlay);
+                
+                chrome.runtime.onMessage.addListener((message) => {
+                    if (message.action === 'updateTimer'){
+                        overlay.textContent = message.text;
+                    }
+                });
+            }});
+    }
+
 }
