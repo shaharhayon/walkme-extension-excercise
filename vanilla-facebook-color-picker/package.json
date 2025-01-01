@@ -1,0 +1,19 @@
+{
+  "name": "vanilla-facebook-color-picker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && npm run copy-files",
+    "copy-files": "mkdir -p dist/options dist/popup && cp src/options/index.html dist/options/index.html && cp src/popup/index.html dist/popup/index.html && cp -r res/* dist/",
+    "clean": "rm -rf dist",
+    "hard-clean": "npm run clean && rm -rf node_modules",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "typescript": "^5.7.2"
+  }
+}
