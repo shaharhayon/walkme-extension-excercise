@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "clean": "rimraf dist",
+    "hard-clean": "rimraf dist node_modules",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -24,6 +26,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "glob": "^11.0.0",
     "globals": "^15.14.0",
+    "rimraf": "^6.0.1",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5"
