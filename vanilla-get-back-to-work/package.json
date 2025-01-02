@@ -1,0 +1,24 @@
+{
+  "name": "vanilla-get-back-to-work",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "webpack && npm run copy-files",
+    "copy-files": "cp -r res/* dist/",
+    "clean": "rm -rf dist",
+    "hard-clean": "npm run clean && rm -rf node_modules",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "path": "^0.12.7",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  }
+}
