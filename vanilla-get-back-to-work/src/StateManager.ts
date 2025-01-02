@@ -4,8 +4,6 @@ import { TimeoutManager } from "./TimeoutManager";
 export class StateManager {
     private readonly _timeoutManager: TimeoutManager;
     constructor() {
-        // this._SetTabList(Array.from(new Set<number>()));
-
         this._timeoutManager = new TimeoutManager();
     }
 
@@ -13,44 +11,38 @@ export class StateManager {
         this._InitiateTabEventHandlers();
     }
 
-    private _InitiateTabEventHandlers(): void {
-    //     chrome.storage.local.onChanged.addListener((changes) => {
-    //         if (
-    //             (changes.tabIds['newValue'] as number[]).length !== 0 &&
-    //             (changes.tabIds['oldValue'] as number[]).length === 0) {
-    //                 this._timeoutManager.StartSession();
-    //                 // ShowTimer();
-    //         } else if (
-    //             (changes.tabIds['newValue'] as number[]).length === 0 &&
-    //             (changes.tabIds['oldValue'] as number[]).length !== 0) {
-    //                 this._timeoutManager.EndSession();
-    //         }
-    //     });
-        
-        chrome.webNavigation.onCompleted.addListener(async (details) => {
-            if(details.url.includes(Constants.TRACKED_URL)){
-                if (!this._timeoutManager.AllowedStatus){
-                    console.log('Cooldown invoked. Redirecting to Google');
-                    chrome.scripting.executeScript({
-                        target: { tabId: details.tabId! },
-                        func: () => {
-                            return new Promise<void>((resolve) => {
-                                alert('Blocked.');
-                                resolve();
-                            });
-                        }
-                    }, () => {
-                        chrome.tabs.update(details.tabId, { url: 'https://www.google.com' });
+    private _navigatedCallback(details: chrome.webNavigation.WebNavigationFramedCallbackDetails | chrome.tabs.TabActiveInfo): void {
+        if (!this._timeoutManager.AllowedStatus){
+            console.log('Cooldown invoked. Redirecting to Google');
+            chrome.scripting.executeScript({
+                target: { tabId: details.tabId! },
+                func: () => {
+                    return new Promise<void>((resolve) => {
+                        alert('Blocked.');
+                        resolve();
                     });
                 }
-                this._timeoutManager.AddTabToList(details.tabId);
-                this._ShowTimer(details.tabId);
+            }, () => {
+                chrome.tabs.update(details.tabId, { url: 'https://www.google.com' });
+            });
+        } else {
+            this._timeoutManager.AddTabToList(details.tabId);
+            this._ShowTimer(details.tabId);
+        }
+    }
+
+    private _InitiateTabEventHandlers(): void {
+        chrome.webNavigation.onCompleted.addListener(async (details) => {
+            if(details.url.includes(Constants.TRACKED_URL)){
+                this._navigatedCallback(details);
+            } else {
+                await this._timeoutManager.RemoveTabFromList(details.tabId);
             }
         });
 
         chrome.tabs.onRemoved.addListener(async (tabId) => {
             console.log(tabId + 'closed');
-            this._timeoutManager.RemoveTabFromList(tabId);
+            await this._timeoutManager.RemoveTabFromList(tabId);
         });
             
         chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
@@ -61,8 +53,7 @@ export class StateManager {
 
         chrome.tabs.onActivated.addListener(async (activeInfo) => {
             if(await this._isTabOnTarget(activeInfo.tabId)){
-                this._timeoutManager.AddTabToList(activeInfo.tabId);
-                this._ShowTimer(activeInfo.tabId);
+                this._navigatedCallback(activeInfo);
             } else {
                 this._timeoutManager.ActiveTabId = activeInfo.tabId;
             }
@@ -75,27 +66,6 @@ export class StateManager {
         }
         return false;
     }
-
-    // private async _GetTabList(): Promise<number[]> {
-    //     return (await chrome.storage.local.get(['tabIds']))['tabIds'];
-    // }
-
-    // private async _SetTabList(tabIds: number[]): Promise<void> {
-    //     return await chrome.storage.local.set({tabIds: [...new Set(tabIds)]});
-    // }    
-
-    // private async _AddTabToList(tabId: number): Promise<void> {
-    //     const tabIds = await this._GetTabList();
-    //     tabIds.push(tabId);
-    //     await this._SetTabList(tabIds);
-    //     await this._ShowTimer();
-    // }
-    
-    // private async _RemoveTabFromList(tabId: number): Promise<void> {
-    //     const tabIds = await this._GetTabList();
-    //     tabIds.splice(tabIds.indexOf(tabId), 1);
-    //     await this._SetTabList(tabIds);
-    // }
 
     private async _ShowTimer(tabId: number): Promise<void> {
             chrome.scripting.executeScript<string[], void>({

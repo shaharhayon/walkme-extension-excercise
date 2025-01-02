@@ -1,27 +1,31 @@
 import Constants from './Constants';
 
+
+
 export class TimeoutManager {
     private _dailyExceeded: boolean = false;
     private _sessionExceeded: boolean = false;
-    private _counter = {
-        session_seconds: 0,
-        total_seconds: 0
-    }
     private _running: boolean = false;
     private _timeout: NodeJS.Timeout | null = null;
     private _session_cooldown: NodeJS.Timeout | null = null;
 
     private _targetTabIds: Set<number> = new Set();
-    // private _activeTabId: number | null = null;
 
-    constructor() {}
-
-    public get AllowedStatus(): boolean {
-        return !(this._dailyExceeded || this._sessionExceeded);
+    constructor() {
+        chrome.runtime.onInstalled.addListener(async () => {
+            console.log(`Init TimeoutManager. Daily timeout: ${Constants.DAILY_TIMEOUT}, Session timeout: ${Constants.SESSION_TIMEOUT}`);
+            console.log(`session seconds: ${await this._getSessionSeconds()}, total seconds: ${await this._getTotalSeconds()}`); 
+            await this._setSessionSeconds(0);
+            await this._setTotalSeconds(0); 
+        });
+        setInterval(() => {
+            console.log(`tabs: ${JSON.stringify(Array.from(this._targetTabIds))}`);
+        }, 1000);
     }
 
-    public async Init(): Promise<void> {
-        await this._loadCounters();
+    public get AllowedStatus(): boolean {
+        console.log(`daily exceeded: ${this._dailyExceeded}, session exceeded: ${this._sessionExceeded}`);
+        return !(this._dailyExceeded || this._sessionExceeded);
     }
 
     public PauseSession(): void {
@@ -37,11 +41,11 @@ export class TimeoutManager {
         }}
     }
 
-    public RemoveTabFromList(tabId: number): void {
+    public async RemoveTabFromList(tabId: number): Promise<void> {
         this._targetTabIds.delete(tabId);
         // this._targetTabIds.clear();
         if(this._targetTabIds.size === 0){
-            this._onSessionEnd();
+            await this._onSessionEnd();
             // this.PauseSession();
         }
     }
@@ -51,79 +55,46 @@ export class TimeoutManager {
     }
 
     private _setActiveTabId(tabId: number): void {
-        // this._activeTabId = tabId;
         if (!this._targetTabIds.has(tabId)){
             this.PauseSession();
         }
     }
-
-    /*
-     private async _GetSessionSeconds(): Promise<number> {
-        return new Promise<number>((resolve, _reject) => {
-            chrome.storage.local.get('session_seconds', (result) => {
-                resolve(result['session_seconds']);
-            });
-        })
-    }
-
-    private _SetSessionSeconds(value: number) {
-        return new Promise<void>((resolve, _reject) => {
-            chrome.storage.local.set({session_seconds: value}, () => {
-                resolve();
-            })
-        });
-    }
-
-    private _GetTotalSeconds(): Promise<number> {
-        return new Promise<number>((resolve, _reject) => {
-            chrome.storage.local.get('total_seconds', (result) => {
-                resolve(result['total_seconds']);
-            });
-        });
-    }
-
-    private _SetTotalSeconds(value: number) {
-        return new Promise<void>((resolve, _reject) => {
-            chrome.storage.local.set({total_seconds: value}, () => {
-                resolve();
-            })
-        });
-    }
-    */
-    
 
     private _onSessionStart(){
         this._timeout = setInterval(this._checkConditions.bind(this), 1000);
         this._running = true;
     }
 
-    private _onSessionEnd(){
+    private async _onSessionEnd(){
+        this._running = false;
         clearInterval(this._timeout!);
-        this._counter.session_seconds = 0;
-        console.log('total_seconds: ' + this._counter.total_seconds);
+        await this._setSessionSeconds(0);
+        console.log('total_seconds: ' + await this._getTotalSeconds());
     }
 
     private async _checkConditions(){
-        this._counter.session_seconds++;
-        this._counter.total_seconds++;
-        await this._syncCounters();
-        if (this._counter.total_seconds >= Constants.DAILY_TIMEOUT){
-            this._onDailyTimeout();
+        await this._setSessionSeconds(await this._getSessionSeconds() + 1);
+        await this._setTotalSeconds(await this._getTotalSeconds() + 1);
+        if (await this._getTotalSeconds() >= Constants.DAILY_TIMEOUT){
+            await this._onDailyTimeout();
         }
-        if (this._counter.session_seconds >= Constants.SESSION_TIMEOUT){
-            this._onSessionTimeout();
+        if (await this._getSessionSeconds() >= Constants.SESSION_TIMEOUT){
+            await this._onSessionTimeout();
         }
 
         for (const tabId of this._targetTabIds) {
-            await chrome.tabs.sendMessage(tabId, {action: 'updateTimer', text: this._generateTimerText()});
+            try{
+                await chrome.tabs.sendMessage(tabId, {action: 'updateTimer', text: await this._generateTimerText()});
+            } catch {}
         }
-        console.log('[' + this._counter.session_seconds + ']' + 'tabIds: ' + JSON.stringify(Array.from(this._targetTabIds)));
+        console.log('[' + await this._getSessionSeconds() + ']' + 'tabIds: ' + JSON.stringify(Array.from(this._targetTabIds)));
     }
 
     private async _onSessionTimeout() {
         console.log('Session timeout');
         this._sessionExceeded = true;
         this._session_cooldown = setTimeout(() => {
+            console.log('Session cooldown ended');
             this._sessionExceeded = false;
             clearTimeout(this._session_cooldown!);
         }, Constants.SESSION_COOLDOWN * 1000);
@@ -141,7 +112,7 @@ export class TimeoutManager {
                 chrome.tabs.update(tabId, { url: 'https://www.google.com' });
             });
         }
-        this._onSessionEnd();
+        await this._onSessionEnd();
     }
 
     private async _onDailyTimeout() {
@@ -162,7 +133,7 @@ export class TimeoutManager {
                 chrome.tabs.update(tabId, { url: 'https://www.google.com' });
             });
         }
-        this._onSessionEnd();
+        await this._onSessionEnd();
     }
 
 
@@ -175,24 +146,27 @@ export class TimeoutManager {
         }, midnight.getTime() - Date.now());
     }
 
-    private async _syncCounters(){
-        await chrome.storage.local.set({
-            session_seconds: this._counter.session_seconds,
-            total_seconds: this._counter.total_seconds
-        });
+    private async _setSessionSeconds(seconds: number){
+        await chrome.storage.local.set({session_seconds: seconds});
     }
 
-    private async _loadCounters(){
-        const fromStorage = await chrome.storage.local.get(['session_seconds', 'total_seconds']);
-        this._counter.session_seconds = fromStorage['session_seconds'] || 0;
-        this._counter.total_seconds = fromStorage['total_seconds'] || 0;
+    private async _getSessionSeconds(): Promise<number> {
+        return (await chrome.storage.local.get('session_seconds'))['session_seconds'];
     }
 
-    private _generateTimerText(): string {
+    private async _setTotalSeconds(seconds: number){
+        await chrome.storage.local.set({total_seconds: seconds});
+    }
+
+    private async _getTotalSeconds(): Promise<number> {
+        return (await chrome.storage.local.get('total_seconds'))['total_seconds'];
+    }
+    
+    private async _generateTimerText(): Promise<string> {
         const padLeft = (string: string, pad = '0', length = 2) => {
             return (new Array(length + 1).join(pad) + string).slice(-length);
         }
-        const timeLeft = Constants.SESSION_TIMEOUT - this._counter.session_seconds;
+        const timeLeft = Constants.SESSION_TIMEOUT - await this._getSessionSeconds();
         const minutes = Math.floor(timeLeft / 60)
         const seconds = timeLeft - minutes * 60;
         return `${padLeft(minutes.toString())}:${padLeft(seconds.toString())}`;
