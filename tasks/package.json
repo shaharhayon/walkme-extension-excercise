@@ -1,0 +1,20 @@
+{
+  "name": "tasks",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "start-server": "tsx src/Server/index.ts",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "express": "^4.21.2",
+    "glob": "^11.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.5"
+  }
+}
