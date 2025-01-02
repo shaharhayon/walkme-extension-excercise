@@ -1,28 +1,4 @@
-// // const path = require('path')
-// import path from 'path';
-// // const CopyWebpackPlugin = require('copy-webpack-plugin');
-
-// export default {
-//     entry: {
-//         background: './dist/ServiceWorker.js',
-//         // content: './src/content.js',
-//         // popup: './src/popup.js',
-//     },
-//     output: {
-//         filename: '[name].js',
-//         path: path.resolve(path.resolve(), 'dist'),
-//         clean: true, // Clean the output directory before emit.
-//     },
-//     plugins: [
-//         // new CopyWebpackPlugin({
-//         //     patterns: [{ from: 'static' }],
-//         // }),
-//     ]
-// }
-
 import path from 'path'
-import webpack from 'webpack'
-// import CopyWebpackPlugin from 'copy-webpack-plugin'
 
 const config = {
     entry: {
@@ -47,11 +23,9 @@ const config = {
         path: path.resolve(path.resolve(), 'dist'),
         clean: true, // Clean the output directory before emit.
     },
-    plugins: [
-        // new CopyWebpackPlugin({
-        //     patterns: [{from: 'static'}],
-        // }),
-    ]
+    plugins: [],
+    mode: 'development',
+    devtool: 'inline-source-map'
 }
 
 export default config
