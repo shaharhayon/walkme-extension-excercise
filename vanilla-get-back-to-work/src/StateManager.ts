@@ -35,7 +35,7 @@ export class StateManager {
                         target: { tabId: details.tabId! },
                         func: () => {
                             return new Promise<void>((resolve) => {
-                                alert('Cooldown.');
+                                alert('Blocked.');
                                 resolve();
                             });
                         }

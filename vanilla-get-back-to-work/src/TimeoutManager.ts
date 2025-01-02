@@ -12,12 +12,16 @@ export class TimeoutManager {
     private _session_cooldown: NodeJS.Timeout | null = null;
 
     private _targetTabIds: Set<number> = new Set();
-    private _activeTabId: number | null = null;
+    // private _activeTabId: number | null = null;
 
     constructor() {}
 
     public get AllowedStatus(): boolean {
         return !(this._dailyExceeded || this._sessionExceeded);
+    }
+
+    public async Init(): Promise<void> {
+        await this._loadCounters();
     }
 
     public PauseSession(): void {
@@ -47,7 +51,7 @@ export class TimeoutManager {
     }
 
     private _setActiveTabId(tabId: number): void {
-        this._activeTabId = tabId;
+        // this._activeTabId = tabId;
         if (!this._targetTabIds.has(tabId)){
             this.PauseSession();
         }
@@ -95,7 +99,6 @@ export class TimeoutManager {
 
     private _onSessionEnd(){
         clearInterval(this._timeout!);
-        // this._counter.total_seconds += this._counter.session_seconds;
         this._counter.session_seconds = 0;
         console.log('total_seconds: ' + this._counter.total_seconds);
     }
@@ -103,20 +106,12 @@ export class TimeoutManager {
     private async _checkConditions(){
         this._counter.session_seconds++;
         this._counter.total_seconds++;
+        await this._syncCounters();
         if (this._counter.total_seconds >= Constants.DAILY_TIMEOUT){
-            console.log('daily timeout');
-            this._onSessionTimeout();
-            this._dailyExceeded = true;
+            this._onDailyTimeout();
         }
         if (this._counter.session_seconds >= Constants.SESSION_TIMEOUT){
             this._onSessionTimeout();
-            this._counter.session_seconds = 0;
-            this._sessionExceeded = true;
-            console.log('Cooldown initiated');
-            this._session_cooldown = setTimeout(() => {
-                this._sessionExceeded = false;
-                clearTimeout(this._session_cooldown!);
-            }, Constants.SESSION_COOLDOWN * 1000);
         }
 
         for (const tabId of this._targetTabIds) {
@@ -126,7 +121,13 @@ export class TimeoutManager {
     }
 
     private async _onSessionTimeout() {
-        const tabList = await this._targetTabIds;
+        console.log('Session timeout');
+        this._sessionExceeded = true;
+        this._session_cooldown = setTimeout(() => {
+            this._sessionExceeded = false;
+            clearTimeout(this._session_cooldown!);
+        }, Constants.SESSION_COOLDOWN * 1000);
+        const tabList = this._targetTabIds;
         for (const tabId of tabList) {
             chrome.scripting.executeScript({
                 target: { tabId: tabId! },
@@ -141,6 +142,50 @@ export class TimeoutManager {
             });
         }
         this._onSessionEnd();
+    }
+
+    private async _onDailyTimeout() {
+        console.log('daily timeout');
+        this._initDailyTimeout();
+        this._dailyExceeded = true;
+        const tabList = this._targetTabIds;
+        for (const tabId of tabList) {
+            chrome.scripting.executeScript({
+                target: { tabId: tabId! },
+                func: () => {
+                    return new Promise<void>((resolve) => {
+                        alert('You have been on Facebook for too long today. Please get back to work.\nYou will regain access tomorrow.');
+                        resolve();
+                    });
+                }
+            }, () => {
+                chrome.tabs.update(tabId, { url: 'https://www.google.com' });
+            });
+        }
+        this._onSessionEnd();
+    }
+
+
+    private _initDailyTimeout(){
+        const midnight = new Date();
+        midnight.setHours(23, 59, 59, 999);
+        console.log(`setting daily timeout for ${midnight.toString()}`);
+        setTimeout(() => {
+            this._dailyExceeded = false;
+        }, midnight.getTime() - Date.now());
+    }
+
+    private async _syncCounters(){
+        await chrome.storage.local.set({
+            session_seconds: this._counter.session_seconds,
+            total_seconds: this._counter.total_seconds
+        });
+    }
+
+    private async _loadCounters(){
+        const fromStorage = await chrome.storage.local.get(['session_seconds', 'total_seconds']);
+        this._counter.session_seconds = fromStorage['session_seconds'] || 0;
+        this._counter.total_seconds = fromStorage['total_seconds'] || 0;
     }
 
     private _generateTimerText(): string {
