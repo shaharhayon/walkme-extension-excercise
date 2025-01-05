@@ -8,11 +8,12 @@ type InternalTask = {
 
 type PartialTask = {
     text: string,
-    status: boolean
+    status?: boolean
 }
 
 type Task = {
-    id: number
+    id: number,
+    status: boolean
 } & PartialTask
 
 export class DB {
@@ -70,7 +71,6 @@ export class DB {
             SELECT *
             FROM tasks
         `).all() as InternalTask[];
-        console.log(JSON.stringify(tasks));
         return tasks.map(t => this._transform(t));
     }
 
@@ -83,32 +83,36 @@ export class DB {
     }
 
     private _addTask(task: Task){
-        this._db.exec(`
+        return this._transform(this._db.prepare(`
             INSERT INTO tasks (text, status)
             VALUES('${task.text}', ${task.status === true ? 'TRUE' : 'FALSE'})
-        `);
+            RETURNING *;
+        `).get() as InternalTask);
     }
 
     private _updateTask(id: number, text: Task['text']) {
-        this._db.exec(`
+        return this._transform(this._db.prepare(`
             UPDATE tasks
             SET text = '${text}'
             WHERE id = ${id}
-        `);
+            RETURNING *;
+        `).get() as InternalTask);
     }
 
     private _removeTask(id: number) {
-        this._db.exec(`
+        return this._transform(this._db.prepare(`
             DELETE FROM tasks
             WHERE id = ${id}
-        `);
+            RETURNING *;
+        `).get() as InternalTask);
     }
 
     private _completeTask(id: number) {
-        this._db.exec(`
+        return this._transform(this._db.prepare(`
             UPDATE tasks
             SET status = 'TRUE'
             WHERE id = ${id}
-        `);
+            RETURNING *;
+        `).get() as InternalTask);
     }
 }
