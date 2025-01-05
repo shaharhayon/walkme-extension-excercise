@@ -6,16 +6,20 @@ type InternalTask = {
     status: 0 | 1
 }
 
-type Task = {
+type PartialTask = {
     text: string,
     status: boolean
 }
+
+type Task = {
+    id: number
+} & PartialTask
 
 export class DB {
     // private readonly _db = new DatabaseSync(':memory:')
     private readonly _db: DatabaseSync;
     constructor(){
-        console.log(`creating db at ${__dirname}/../tasks.db`)
+        console.log(`Using db at ${__dirname}/../tasks.db`)
         this._db = new DatabaseSync(`${__dirname}/../tasks.db`);
         this._db.exec(`
             CREATE TABLE IF NOT EXISTS tasks(
@@ -50,7 +54,7 @@ export class DB {
         return this._completeTask(id);
     }
 
-    private _getTask(id: number) {
+    private _getTask(id: number): Task {
         const tasks: InternalTask[] = this._db.prepare(`
             SELECT *
             FROM tasks
@@ -58,20 +62,24 @@ export class DB {
         `).all() as InternalTask[];
         console.log(JSON.stringify(tasks));
         if (tasks.length > 1) throw new Error('_getTask returned multiple objects');
-        return tasks[0];
+        return this._transform(tasks[0]);
     }
 
-    private _getAllTasks(){
+    private _getAllTasks(): Task[]{
         const tasks: InternalTask[] = this._db.prepare(`
             SELECT *
             FROM tasks
         `).all() as InternalTask[];
         console.log(JSON.stringify(tasks));
-        return tasks;
+        return tasks.map(t => this._transform(t));
     }
 
-    private _transform(task: Required<Task>){
-
+    private _transform(task: InternalTask): Task{
+        return {
+            id: task.id,
+            text: task.text,
+            status: task.status === 1 ? true : false
+        }
     }
 
     private _addTask(task: Task){
