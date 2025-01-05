@@ -2,8 +2,8 @@ import path from 'path'
 
 const config = {
     entry: {
-        background: './src/ServiceWorker.ts',
-        // content: './src/content.ts',
+        background: './src/background.ts',
+        content: './src/content.ts',
         // popup: './src/popup.ts',
     },
     resolve: {

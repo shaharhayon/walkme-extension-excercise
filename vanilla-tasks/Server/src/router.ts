@@ -42,16 +42,22 @@ router.post('/task', (req, res) => {
 router.put('/task', (req, res) => {
     const id = req.body['id']
     const text = req.body['text'];
+    const status = req.body['status']
     if (!(typeof id == 'number')){
         res.status(400).send(JSON.stringify(new Error('put must contain id')));
         return;
-    } else if (!(typeof text == 'string')){
-        res.status(400).send(JSON.stringify(new Error('put must contain text')));
+    } else if (!(typeof text == 'string' || (status === 0 || status === 1))){
+        res.status(400).send(JSON.stringify(new Error('put must contain text or status')));
         return;
     }
     try {
-        const updatedTask = db.UpdateTask(id, text);
-        res.status(200).send(JSON.stringify(updatedTask));
+        let updatedTask: ReturnType<DB['UpdateTask']>;
+        if (text !== undefined){
+            updatedTask = db.UpdateTask(id, text);
+        } else if (status !== undefined) {
+            updatedTask = db.CompleteTask(id);
+        }
+        res.status(200).send(JSON.stringify(updatedTask!));
     } catch (e) {
         res.status(500).send(JSON.stringify(e));
     }
