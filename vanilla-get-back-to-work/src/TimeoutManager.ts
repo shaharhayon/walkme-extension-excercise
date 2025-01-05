@@ -1,31 +1,32 @@
 import Constants from './Constants';
-
+import { Storage } from './Storage';
 
 
 export class TimeoutManager {
-    private _dailyExceeded: boolean = false;
-    private _sessionExceeded: boolean = false;
     private _running: boolean = false;
     private _timeout: NodeJS.Timeout | null = null;
-    private _session_cooldown: NodeJS.Timeout | null = null;
-
     private _targetTabIds: Set<number> = new Set();
+
+    private readonly _storage: Storage = new Storage();
 
     constructor() {
         chrome.runtime.onInstalled.addListener(async () => {
             console.log(`Init TimeoutManager. Daily timeout: ${Constants.DAILY_TIMEOUT}, Session timeout: ${Constants.SESSION_TIMEOUT}`);
-            console.log(`session seconds: ${await this._getSessionSeconds()}, total seconds: ${await this._getTotalSeconds()}`); 
-            await this._setSessionSeconds(0);
-            await this._setTotalSeconds(0); 
+            console.log(`session seconds: ${await this._storage.GetSessionSeconds()}, total seconds: ${await this._storage.GetTotalSeconds()}`); 
+            this._storage.Initialize();
         });
         setInterval(() => {
             console.log(`tabs: ${JSON.stringify(Array.from(this._targetTabIds))}`);
         }, 1000);
     }
 
-    public get AllowedStatus(): boolean {
-        console.log(`daily exceeded: ${this._dailyExceeded}, session exceeded: ${this._sessionExceeded}`);
-        return !(this._dailyExceeded || this._sessionExceeded);
+    public async AllowedStatus(): Promise<boolean> {
+        const dailyExceeded = await this._storage.GetDailyTimeoutTimestamp();
+        const sessionExceeded = await this._storage.GetSessionTimeoutTimestamp();
+        console.log(`daily exceeded: ${new Date(dailyExceeded).toUTCString()}, session exceeded: ${new Date(sessionExceeded).toUTCString()}`);
+        const dailyAllowed = Date.now() >= dailyExceeded;
+        const sessionAllowed = Date.now() >= sessionExceeded;
+        return (dailyAllowed && sessionAllowed);
     }
 
     public PauseSession(): void {
@@ -43,10 +44,8 @@ export class TimeoutManager {
 
     public async RemoveTabFromList(tabId: number): Promise<void> {
         this._targetTabIds.delete(tabId);
-        // this._targetTabIds.clear();
         if(this._targetTabIds.size === 0){
             await this._onSessionEnd();
-            // this.PauseSession();
         }
     }
 
@@ -68,17 +67,17 @@ export class TimeoutManager {
     private async _onSessionEnd(){
         this._running = false;
         clearInterval(this._timeout!);
-        await this._setSessionSeconds(0);
-        console.log('total_seconds: ' + await this._getTotalSeconds());
+        await this._storage.SetSessionSeconds(0);
+        console.log('total_seconds: ' + await this._storage.GetTotalSeconds());
     }
 
     private async _checkConditions(){
-        await this._setSessionSeconds(await this._getSessionSeconds() + 1);
-        await this._setTotalSeconds(await this._getTotalSeconds() + 1);
-        if (await this._getTotalSeconds() >= Constants.DAILY_TIMEOUT){
+        await this._storage.SetSessionSeconds(await this._storage.GetSessionSeconds() + 1);
+        await this._storage.SetTotalSeconds(await this._storage.GetTotalSeconds() + 1);
+        if (await this._storage.GetTotalSeconds() >= Constants.DAILY_TIMEOUT){
             await this._onDailyTimeout();
         }
-        if (await this._getSessionSeconds() >= Constants.SESSION_TIMEOUT){
+        if (await this._storage.GetSessionSeconds() >= Constants.SESSION_TIMEOUT){
             await this._onSessionTimeout();
         }
 
@@ -87,17 +86,12 @@ export class TimeoutManager {
                 await chrome.tabs.sendMessage(tabId, {action: 'updateTimer', text: await this._generateTimerText()});
             } catch {}
         }
-        console.log('[' + await this._getSessionSeconds() + ']' + 'tabIds: ' + JSON.stringify(Array.from(this._targetTabIds)));
+        console.log('[' + await this._storage.GetSessionSeconds() + ']' + 'tabIds: ' + JSON.stringify(Array.from(this._targetTabIds)));
     }
 
     private async _onSessionTimeout() {
         console.log('Session timeout');
-        this._sessionExceeded = true;
-        this._session_cooldown = setTimeout(() => {
-            console.log('Session cooldown ended');
-            this._sessionExceeded = false;
-            clearTimeout(this._session_cooldown!);
-        }, Constants.SESSION_COOLDOWN * 1000);
+        this._initSessionTimeout();
         const tabList = this._targetTabIds;
         for (const tabId of tabList) {
             chrome.scripting.executeScript({
@@ -118,7 +112,6 @@ export class TimeoutManager {
     private async _onDailyTimeout() {
         console.log('daily timeout');
         this._initDailyTimeout();
-        this._dailyExceeded = true;
         const tabList = this._targetTabIds;
         for (const tabId of tabList) {
             chrome.scripting.executeScript({
@@ -136,37 +129,23 @@ export class TimeoutManager {
         await this._onSessionEnd();
     }
 
+    private _initSessionTimeout(){
+        const timeoutUntilTimestamp = new Date().getTime() + 1000 * Constants.SESSION_COOLDOWN
+        this._storage.SetSessionTimeoutTimestamp(timeoutUntilTimestamp)
+    }
 
     private _initDailyTimeout(){
         const midnight = new Date();
         midnight.setHours(23, 59, 59, 999);
+        this._storage.SetDailyTimeoutTimestamp(midnight.getTime());
         console.log(`setting daily timeout for ${midnight.toString()}`);
-        setTimeout(() => {
-            this._dailyExceeded = false;
-        }, midnight.getTime() - Date.now());
-    }
-
-    private async _setSessionSeconds(seconds: number){
-        await chrome.storage.local.set({session_seconds: seconds});
-    }
-
-    private async _getSessionSeconds(): Promise<number> {
-        return (await chrome.storage.local.get('session_seconds'))['session_seconds'];
-    }
-
-    private async _setTotalSeconds(seconds: number){
-        await chrome.storage.local.set({total_seconds: seconds});
-    }
-
-    private async _getTotalSeconds(): Promise<number> {
-        return (await chrome.storage.local.get('total_seconds'))['total_seconds'];
     }
     
     private async _generateTimerText(): Promise<string> {
         const padLeft = (string: string, pad = '0', length = 2) => {
             return (new Array(length + 1).join(pad) + string).slice(-length);
         }
-        const timeLeft = Constants.SESSION_TIMEOUT - await this._getSessionSeconds();
+        const timeLeft = Constants.SESSION_TIMEOUT - await this._storage.GetSessionSeconds();
         const minutes = Math.floor(timeLeft / 60)
         const seconds = timeLeft - minutes * 60;
         return `${padLeft(minutes.toString())}:${padLeft(seconds.toString())}`;
