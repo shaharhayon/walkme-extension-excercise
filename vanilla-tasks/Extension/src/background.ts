@@ -1,73 +1,56 @@
-const MESSAGING = {
-    ADD_TASK: 'add',
-    EDIT_TASK: 'edit',
-    REMOVE_TASK: 'remove',
-    MARK_DONE: 'done'
-} as const;
-type AddTask = {
-    action: 'ADD_TASK',
-    data: {
-        text: string
-    }
-}
-type EditTask = {
-    action: 'EDIT_TASK',
-    data: {
-        text: string
-    }
-}
-type RemoveTask = {
-    action: 'REMOVE_TASK',
-    data: {
-        id: number
-    }
-}
-type MarkDone = {
-    action: 'MARK_DONE',
-    data: {
-        id: number
-    }
-}
-type Message = AddTask | EditTask | RemoveTask | MarkDone
-type RestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
-
-type Task = {
-    id: number
-    status: boolean
-    text: string
-}
 
 const SERVER_URL = 'http://localhost:3000';
 
 
 chrome.runtime.onMessage.addListener(async (message: Message, sender, sendResponse) => {
+    console.log('message received: ' + JSON.stringify(message))
+    const messageWithPath = {
+        ...message,
+        path: '/task'
+    }
     switch (message.action){
         case 'ADD_TASK': {
-            await SendRest('POST', message.data)
+            const task = await SendRest('POST', messageWithPath);
+            SendResponseToTab(message.tabId, [task])
             break;
         }
         case 'EDIT_TASK': {
-            await SendRest('PUT', message.data)
+            const task = await SendRest('PUT', messageWithPath);
+            SendResponseToTab(message.tabId, [task])
             break;
         }
         case 'REMOVE_TASK': {
-            await SendRest('DELETE', message.data)
+            const task = await SendRest('DELETE', messageWithPath);
+            SendResponseToTab(message.tabId, [task])
             break;
         }
         case 'MARK_DONE': {
-            await SendRest('PUT', message.data)
+            const task = await SendRest('PUT', messageWithPath);
+            SendResponseToTab(message.tabId, [task])
+            break;
+        }
+        case "GET_ALL_TASKS":{
+            messageWithPath.path = '/tasks';
+            const tasks = await SendRest('GET', messageWithPath);
+
+            console.log(JSON.stringify(task))
             break;
         }
     }
 })
-async function SendRest(method: 'POST', body: Message['data']): Promise<Task>
-async function SendRest(method: 'PUT', body: Message['data']): Promise<Task>
-async function SendRest(method: 'DELETE', body: Message['data']): Promise<Task>
-async function SendRest(method: 'PUT', body: Message['data']): Promise<Task>
-async function SendRest(method: RestMethod, body: Message['data']): Promise<Task>{
-    const res = await fetch(SERVER_URL, {
-        method,
-        body: JSON.stringify(body)
-    });
-    return res.json();
+async function SendRest<T extends >(method: RestMethod, body: MessageWithPath): Promise<Task>{
+    try {
+        const res = await fetch(`${SERVER_URL}${body.path}`, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            method,
+            body: body.data !== undefined ? JSON.stringify(body.data) : undefined
+        });
+        return res.json();  
+    } catch (e) {
+        console.error(e)
+        throw 'e'
+    }
 }
