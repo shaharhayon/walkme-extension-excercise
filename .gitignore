@@ -1,3 +1,5 @@
 v1
 v2
 gbtw
+*.zip
+**/.DS_Store
