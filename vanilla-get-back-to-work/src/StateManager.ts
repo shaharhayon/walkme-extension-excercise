@@ -11,7 +11,7 @@ export class StateManager {
         this._InitiateTabEventHandlers();
     }
 
-    private async _navigatedCallback(details: chrome.webNavigation.WebNavigationFramedCallbackDetails | chrome.tabs.TabActiveInfo): Promise<void> {
+    private async _navigatedCallback(details: {tabId: number}): Promise<void> {
         if (!(await this._timeoutManager.AllowedStatus())){
             console.log('Cooldown invoked. Redirecting to Google');
             chrome.scripting.executeScript({
@@ -43,7 +43,7 @@ export class StateManager {
             console.log('Tab onUpdated' + JSON.stringify(changeInfo))
             if(changeInfo.url.includes(Constants.TRACKED_URL)){
                 // this._ShowTimer(tabId);
-                await this._navigatedCallback({tabId} as any)
+                await this._navigatedCallback({tabId})
             } else {
                 await this._timeoutManager.RemoveTabFromList(tabId);
             }
