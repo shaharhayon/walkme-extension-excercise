@@ -15,9 +15,6 @@ export class TimeoutManager {
             console.log(`session seconds: ${await this._storage.GetSessionSeconds()}, total seconds: ${await this._storage.GetTotalSeconds()}`); 
             this._storage.Initialize();
         });
-        setInterval(() => {
-            console.log(`tabs: ${JSON.stringify(Array.from(this._targetTabIds))}`);
-        }, 1000);
     }
 
     public async AllowedStatus(): Promise<boolean> {
@@ -30,12 +27,14 @@ export class TimeoutManager {
     }
 
     public PauseSession(): void {
+        console.log('paused')
         clearInterval(this._timeout!);
         this._running = false;
     }
 
     public AddTabToList(tabId: number): void {
         this._targetTabIds.add(tabId);
+        console.log(`tabs: ${JSON.stringify(Array.from(this._targetTabIds))}`);
         if (!this._running){ {
             this._onSessionStart();
             this._running = true;
@@ -44,6 +43,7 @@ export class TimeoutManager {
 
     public async RemoveTabFromList(tabId: number): Promise<void> {
         this._targetTabIds.delete(tabId);
+        console.log(`tabs: ${JSON.stringify(Array.from(this._targetTabIds))}`);
         if(this._targetTabIds.size === 0){
             await this._onSessionEnd();
         }
@@ -60,13 +60,13 @@ export class TimeoutManager {
     }
 
     private _onSessionStart(){
+        console.log('started')
         this._timeout = setInterval(this._checkConditions.bind(this), 1000);
         this._running = true;
     }
 
     private async _onSessionEnd(){
-        this._running = false;
-        clearInterval(this._timeout!);
+        this.PauseSession();
         await this._storage.SetSessionSeconds(0);
         console.log('total_seconds: ' + await this._storage.GetTotalSeconds());
     }
