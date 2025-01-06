@@ -1,60 +1,62 @@
-const MESSAGING = {
+export const MESSAGING = {
     ADD_TASK: 'add',
     EDIT_TASK: 'edit',
     REMOVE_TASK: 'remove',
     MARK_DONE: 'done'
 } as const;
 
-type InternalMessage = {
-    tabId: number,
+export type InternalMessage = {
+    // tabId: number,
     action: string,
     data?: {
         text?: string,
-        id?: number
+        id?: number,
+        status?: 0 | 1
     }
 }
-type AddTask = InternalMessage & {
+export type AddTask = InternalMessage & {
     action: 'ADD_TASK',
     data: {
         text: string
     }
 }
-type EditTask = InternalMessage & {
+export type EditTask = InternalMessage & {
     action: 'EDIT_TASK',
     data: {
         text: string
     }
 }
-type RemoveTask = InternalMessage & {
+export type RemoveTask = InternalMessage & {
     action: 'REMOVE_TASK',
     data: {
         id: number
     }
 }
-type MarkDone = InternalMessage & {
+export type MarkDone = InternalMessage & {
     action: 'MARK_DONE',
     data: {
-        id: number
+        id: number,
+        status: 1
     }
 }
-type GetAllTasks = InternalMessage & {
+export type GetAllTasks = InternalMessage & {
     action: 'GET_ALL_TASKS',
     data: undefined
 }
-type Message = AddTask | EditTask | RemoveTask | MarkDone | GetAllTasks
-type MessageWithPath = Message & { path: string }
-type RestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+export type Message = AddTask | EditTask | RemoveTask | MarkDone | GetAllTasks
+export type MessageWithPath = Message & { path: string }
+export type RestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
-type Task = {
+export type Task = {
     id: number
     status: boolean
     text: string
 }
 
-function SendMessageToBackground(message: Message) {
+export function SendMessageToBackground(message: Message) {
     chrome.runtime.sendMessage(message);
 }
 
-function SendResponseToTab(tabId: number, tasks: Task[]) {
+export function SendResponseToTab(tabId: number, tasks: Task[]) {
     chrome.tabs.sendMessage(tabId, tasks);
 }

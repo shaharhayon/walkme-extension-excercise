@@ -70,6 +70,7 @@ export class DB {
         const tasks: InternalTask[] = this._db.prepare(`
             SELECT *
             FROM tasks
+            WHERE status = 0
         `).all() as InternalTask[];
         return tasks.map(t => this._transform(t));
     }
@@ -110,7 +111,7 @@ export class DB {
     private _completeTask(id: number) {
         return this._transform(this._db.prepare(`
             UPDATE tasks
-            SET status = 'TRUE'
+            SET status = TRUE
             WHERE id = ${id}
             RETURNING *;
         `).get() as InternalTask);

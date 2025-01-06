@@ -43,10 +43,14 @@ router.put('/task', (req, res) => {
     const id = req.body['id']
     const text = req.body['text'];
     const status = req.body['status']
+    console.log(JSON.stringify(req.body));
+    console.log(typeof id)
     if (!(typeof id == 'number')){
+        console.log(1)
         res.status(400).send(JSON.stringify(new Error('put must contain id')));
         return;
     } else if (!(typeof text == 'string' || (status === 0 || status === 1))){
+        console.log(2)
         res.status(400).send(JSON.stringify(new Error('put must contain text or status')));
         return;
     }
