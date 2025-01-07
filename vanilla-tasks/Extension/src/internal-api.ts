@@ -60,3 +60,4 @@ export function SendMessageToBackground(message: Message) {
 export function SendResponseToTab(tabId: number, tasks: Task[]) {
     chrome.tabs.sendMessage(tabId, tasks);
 }
+

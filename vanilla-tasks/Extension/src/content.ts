@@ -1,10 +1,10 @@
 import { Message, SendMessageToBackground, Task } from "./internal-api";
 
 const button = document.createElement('button');
-button.textContent = 'Click Me!';
+button.textContent = 'Tasks';
 button.style.position = 'fixed'; 
-button.style.bottom = '20px'; 
-button.style.right = '20px'; 
+button.style.top = '25px'; 
+button.style.left = '25px'; 
 button.style.padding = '10px 20px';
 button.style.fontSize = '16px';
 button.style.backgroundColor = '#007bff';
@@ -12,6 +12,7 @@ button.style.color = 'white';
 button.style.border = 'none';
 button.style.borderRadius = '5px';
 button.style.cursor = 'pointer';
+button.style.zIndex = '9999'
 
 document.body.appendChild(button);
 
@@ -38,15 +39,14 @@ button.addEventListener('click', async (e) => {
         overlay.style.backgroundColor = '#fff';
         overlay.style.border = '1px solid #ddd';
         overlay.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
-        overlay.style.zIndex = '9999';
+        overlay.style.zIndex = '9998';
         overlay.style.maxWidth = '300px';
             
     let heading = document.createElement('h1');
-        heading.innerText = 'Tasks';
-        heading.style.fontSize = '18px';
-        heading.style.color = '#333';
-        overlay.appendChild(heading);
+    heading.style.height = '30px'
     const newTaskField = CreateNewTaskTextField();
+
+    overlay.appendChild(heading);
     overlay.appendChild(newTaskField);
 
     let ul = document.createElement('ul');
@@ -54,7 +54,6 @@ button.addEventListener('click', async (e) => {
         ul.style.padding = '20px';
         ul.style.overflowY = 'scroll'
         ul.style.maxHeight = '300px'
-        // ul.style.overflowY = 'scroll'
     
     RefreshList();
 
@@ -67,14 +66,13 @@ button.addEventListener('click', async (e) => {
             RefreshList();
             return;
         }
-        
-        for (let i = 0; i < items.length; i++){
-            const item = items[i];
+
+            for (const item of items) {
             const li = CreateListItem(item);
 
             const input = CreateTextField(item);
             const checkbox = CreateCheckBox(item);
-            const deleteButton = CreateDeleteButton(li, item);
+            const deleteButton = CreateDeleteButton(item);
 
             li.appendChild(checkbox);
             li.appendChild(input);
@@ -117,15 +115,21 @@ function CreateListItem(item: Task){
 function CreateNewTaskTextField(){
     const input = document.createElement('input');
     input.type = 'text';
-    input.style.border = 'none';
-    input.style.backgroundColor = 'transparent';
+    input.style.border = '2px solid #ccc';
+    input.style.padding = '5px';
+    input.style.borderRadius = '5px'
+    input.style.backgroundColor = '#f0f0f0';
     input.style.fontSize = '16px';
     input.style.width = '100%'; 
     input.style.outline = 'none';
     input.placeholder = 'Create a new task'
+    input.style.flexGrow = '1'
  
     input.addEventListener('keyup', function(event) {
         if (event.key === 'Enter') {
+            if (input.value == '') 
+                return;
+
             SendMessageToBackground({
                 action: 'ADD_TASK',
                 data: {
@@ -188,7 +192,7 @@ function CreateCheckBox(item: Task){
     return checkbox;
 }
 
-function CreateDeleteButton(li: HTMLLIElement, item: Task){
+function CreateDeleteButton(item: Task){
     const deleteButton = document.createElement('button');
     deleteButton.innerText = 'Delete';
     deleteButton.style.marginLeft = 'auto'; 
