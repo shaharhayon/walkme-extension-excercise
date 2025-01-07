@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "webpack && cp -r res/* dist/",
+    "build": "webpack --watch && cp -r res/* dist/",
     "clean": "rm -rf dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,9 +12,13 @@
   "description": "",
   "devDependencies": {
     "@types/chrome": "^0.0.289",
+    "copy-webpack-plugin": "^12.0.2",
     "ts-loader": "^9.5.1",
     "typescript": "^5.7.2",
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@fontsource/poppins": "^5.1.1"
   }
 }
