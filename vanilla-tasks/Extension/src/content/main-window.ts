@@ -19,22 +19,26 @@ export function CreateMainWindow(){
     overlay.style.zIndex = '9998';
     overlay.style.width = '400px';
     overlay.style.maxHeight = '90%'
+    overlay.style.borderRadius = '50px'
             
     let heading = document.createElement('h1');
     heading.style.paddingTop = '0px'
     heading.style.paddingBottom = '30px'
     heading.style.fontFamily = '"Poppins", sans-serif'; 
+    heading.style.fontSize = '16'
     heading.style.color = 'lightgrey'
     heading.style.textShadow = '0 0 5px rgba(0, 0, 0, 0.1)'
     heading.style.textAlign = 'center'
     heading.innerText = 'Tasks'
     heading.style.height = '10px'
     heading.style.flexGrow = '1'
+    heading.style.cursor = 'default'
 
     
     let ul = document.createElement('ul');
     ul.id = 'open-tasks-list'
     ul.style.listStyleType = 'none';
+    ul.style.margin = '0.5%'
     ul.style.padding = '20px';
     ul.style.overflowY = 'scroll'
     ul.style.border = '1px solid #ddd';
@@ -55,14 +59,12 @@ export function CreateMainWindow(){
     chrome.runtime.onMessage.addListener((items: Task[], _sender, _sendResponse) => {
         const ul = document.getElementById('open-tasks-list') as HTMLUListElement;
         if (items.length === 0){
-            while (ul.firstChild){
-                ul.removeChild(ul.firstChild)
-            }
-            
             RefreshList();
             return;
         }
-        
+        while (ul.firstChild){
+            ul.removeChild(ul.firstChild)
+        }
         for (const item of items) {
             const li = CreateTaskListItem(item);
             ul.appendChild(li);

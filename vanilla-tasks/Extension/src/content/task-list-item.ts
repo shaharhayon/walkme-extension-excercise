@@ -3,13 +3,18 @@ import { AddHighlightOnHover } from "./util";
 
 export function CreateTaskListItem(item: Task){
     const li = document.createElement('li')
-    li.id = `item-${item.id}`
-    li.style.display = 'flex'
+    li.id = `item-${item.id}`;
+    li.style.transform = 'none'
+    li.style.display = 'flex';
+    li.style.flexDirection = 'row';
+    li.style.alignItems = 'center';
     li.style.backgroundColor = '#f0f0f0';
-    li.style.margin = '10px 0';
+    li.style.margin = '1%';
     li.style.padding = '10px';
     li.style.borderRadius = '5px';
     li.style.fontSize = '16px';
+    li.style.width = '100%';
+    li.style.height = '40px'
     
     li.addEventListener('mouseover', () => {
         li.style.backgroundColor = '#e0e0e0';
@@ -35,7 +40,9 @@ function CreateTaskTextField(item: Task){
     input.style.fontSize = '16px';
     input.style.width = '100%';
     input.style.outline = 'none';
-    input.style.fontFamily = '"Poppins", sans-serif'; 
+    input.style.fontFamily = '"Poppins", sans-serif';
+    input.style.flexGrow = '1' 
+    // autoScrollText(input);
 
     input.addEventListener('blur', () => {
         SendMessageToBackground({
@@ -59,12 +66,14 @@ function CreateCompleteButton(item: Task){
     completedButton.id = `checkbox-${item.id}`;
     completedButton.style.backgroundPosition = 'center'
     completedButton.style.backgroundSize = 'cover'
+    completedButton.style.backgroundColor = 'transparent';
     completedButton.style.opacity = '50%'
-    completedButton.style.height = '2vh'
-    completedButton.style.width = '2vh'
+    completedButton.style.height = '24px'
+    completedButton.style.width = '24px'
     completedButton.style.cursor = 'pointer';
     completedButton.style.border = 'none';
     completedButton.style.marginRight = '10px';
+    completedButton.style.flexGrow = '2'
     AddHighlightOnHover(completedButton)
     if (item.status) {
         alert('x')
@@ -94,12 +103,16 @@ function CreateDeleteButton(item: Task){
     const deleteButton = document.createElement('button');
     deleteButton.style.backgroundImage = `url(${url})`
     deleteButton.style.backgroundPosition = 'center'
+    deleteButton.style.backgroundColor = 'transparent';
     deleteButton.style.opacity = '50%'
+    deleteButton.style.height = '24px'
+    deleteButton.style.width = '24px'
     deleteButton.style.backgroundSize = 'cover'
     deleteButton.style.marginLeft = 'auto'; 
     deleteButton.style.padding = '10px 10px';
     deleteButton.style.cursor = 'pointer';
     deleteButton.style.border = 'none';
+    // deleteButton.style.marginRight = '50px'
     AddHighlightOnHover(deleteButton);
     deleteButton.addEventListener('click', function() {
         SendMessageToBackground({
@@ -112,3 +125,23 @@ function CreateDeleteButton(item: Task){
     });
     return deleteButton;
 }
+
+// function autoScrollText(element: HTMLElement) {
+//     const textWidth = element.scrollWidth; // Width of the text inside the container
+//     const containerWidth = element.clientWidth; // Width of the container
+
+//     if (textWidth > containerWidth) {
+//         let scrollPosition = containerWidth;
+//         element.style.whiteSpace = 'nowrap'; // Prevent line breaks
+
+//         function scrollText() {
+//             if (scrollPosition <= -textWidth) {
+//                 scrollPosition = containerWidth; // Reset scroll position once it has fully scrolled off
+//             }
+//             scrollPosition -= 1; // Decrease to scroll left
+//             element.style.transform = `translateX(${scrollPosition}px)`; // Move the text
+//             requestAnimationFrame(scrollText); // Keep animating
+//         }
+//         scrollText(); // Start scrolling
+//     }
+// }
