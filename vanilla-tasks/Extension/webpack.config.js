@@ -2,8 +2,8 @@ import path from 'path'
 import CopyWebpackPlugin from 'copy-webpack-plugin'
 const config = {
     entry: {
-        background: './src/background.ts',
-        content: './src/content.ts',
+        background: './src/background/index.ts',
+        content: './src/content/index.ts',
         // popup: './src/popup.ts',
     },
     resolve: {

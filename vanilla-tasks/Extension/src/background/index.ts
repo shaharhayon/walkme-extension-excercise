@@ -1,4 +1,4 @@
-import { Message, MessageWithPath, RestMethod, SendResponseToTab, Task } from "./internal-api";
+import { Message, MessageWithPath, RestMethod, SendResponseToTab, Task } from "../internal-api";
 
 const SERVER_URL = 'http://localhost:3000';
 
