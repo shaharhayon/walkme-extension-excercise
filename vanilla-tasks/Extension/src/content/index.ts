@@ -4,6 +4,5 @@ import { AddPoppinsFont } from "./util";
 
 AddPoppinsFont();
 
-const startButton = CreateStartButton();
-const mainWindow = CreateMainWindow();
-document.body.appendChild(startButton);
+CreateStartButton();
+CreateMainWindow();

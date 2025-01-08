@@ -7,8 +7,6 @@ export function CreateNewTaskTextField(){
     div.style.alignItems = 'center'
     div.style.marginTop = '20px'
     div.style.maxWidth = '100%'
-    // div.style.width = 'inherit'
-    // div.style.height = 'inherit'
     div.style.background = 'transparent'
     div.style.boxSizing = 'border-box'
 
@@ -20,11 +18,8 @@ export function CreateNewTaskTextField(){
     input.style.backgroundColor = '#f0f0f0';
     input.style.fontSize = '16px';
     input.style.fontFamily = '"Poppins", sans-serif'; 
-
-    // input.style.width = '100px'; 
     input.style.outline = 'none';
     input.placeholder = 'Add a new task'
-    // input.style.marginTop = '20px'
     input.style.flexGrow = '1'
 
     const AddTaskCommand = () => {
@@ -51,18 +46,13 @@ export function CreateNewTaskTextField(){
     addTaskButton.style.backgroundPosition = 'center'
     addTaskButton.style.backgroundSize = 'cover'
     addTaskButton.style.opacity = '50%'
-    // addTaskButton.innerText = '+';
     addTaskButton.style.marginLeft = '10px'; 
     addTaskButton.style.padding = '10px 10px';
     addTaskButton.style.cursor = 'pointer';
     addTaskButton.style.border = 'none';
     addTaskButton.style.backgroundColor = 'white'
-
-    // addTaskButton.style.width = input.style.height 
-    // addTaskButton.style.height = input.style.height 
     addTaskButton.style.width = '40px'
     addTaskButton.style.height = '40px'
-    // addTaskButton.style.backgroundImage = url
     AddHighlightOnHover(addTaskButton);
     
     addTaskButton.addEventListener('click', AddTaskCommand);

@@ -10,7 +10,6 @@ export function CreateTaskListItem(item: Task){
     li.style.padding = '10px';
     li.style.borderRadius = '5px';
     li.style.fontSize = '16px';
-    // li.style.cursor = 'pointer';
     
     li.addEventListener('mouseover', () => {
         li.style.backgroundColor = '#e0e0e0';
@@ -20,7 +19,7 @@ export function CreateTaskListItem(item: Task){
         li.style.backgroundColor = '#f0f0f0';
     });
 
-    li.appendChild(CreateCheckBox(item));
+    li.appendChild(CreateCompleteButton(item));
     li.appendChild(CreateTaskTextField(item));
     li.appendChild(CreateDeleteButton(item));
 
@@ -55,28 +54,24 @@ function CreateTaskTextField(item: Task){
     return input;
 }
 
-function CreateCheckBox(item: Task){
-    // const checkbox = document.createElement('input');
-    const checkbox = document.createElement('button');
-    checkbox.id = `checkbox-${item.id}`;
-    checkbox.style.backgroundPosition = 'center'
-    checkbox.style.backgroundSize = 'cover'
-    checkbox.style.opacity = '50%'
-    checkbox.style.height = '2vh'
-    checkbox.style.width = '2vh'
-    checkbox.style.cursor = 'pointer';
-    checkbox.style.border = 'none';
-
-    // checkbox.type = 'checkbox';
-    checkbox.style.marginRight = '10px';
-    // checkbox.checked = item.status;
-    AddHighlightOnHover(checkbox)
+function CreateCompleteButton(item: Task){
+    const completedButton = document.createElement('button');
+    completedButton.id = `checkbox-${item.id}`;
+    completedButton.style.backgroundPosition = 'center'
+    completedButton.style.backgroundSize = 'cover'
+    completedButton.style.opacity = '50%'
+    completedButton.style.height = '2vh'
+    completedButton.style.width = '2vh'
+    completedButton.style.cursor = 'pointer';
+    completedButton.style.border = 'none';
+    completedButton.style.marginRight = '10px';
+    AddHighlightOnHover(completedButton)
     if (item.status) {
         alert('x')
     } else {
-        checkbox.style.backgroundImage = `url(${chrome.runtime.getURL('icons/check.png')})`
+        completedButton.style.backgroundImage = `url(${chrome.runtime.getURL('icons/check.png')})`
     }
-    checkbox.addEventListener('click', async (ev: any) => {
+    completedButton.addEventListener('click', async (ev: any) => {
         if (item.status){
             return;
         }
@@ -89,7 +84,7 @@ function CreateCheckBox(item: Task){
         }
         SendMessageToBackground(message);
     });
-    return checkbox;
+    return completedButton;
 }
 
 

@@ -57,5 +57,6 @@ export function CreateStartButton(){
             return;
         }
     })
+    document.body.appendChild(button);
     return button;
 }

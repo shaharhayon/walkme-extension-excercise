@@ -6,7 +6,6 @@ import { RefreshList } from "./util";
 export function CreateMainWindow(){
     const overlay = document.createElement('div');
     overlay.style.fontFamily = '"Poppins", sans-serif'; 
-    // overlay.style.fontFamily = 'Poppins';
     overlay.style.display = 'none'
     overlay.style.padding = '20px'
     overlay.style.flexDirection = 'column'
@@ -14,7 +13,6 @@ export function CreateMainWindow(){
     overlay.style.position = 'fixed';
     overlay.style.top = '10px';
     overlay.style.left = '20px';
-    // overlay.style.padding = '20px';
     overlay.style.backgroundColor = '#fff';
     overlay.style.border = '1px solid #ddd';
     overlay.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
