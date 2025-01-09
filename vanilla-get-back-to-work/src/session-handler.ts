@@ -58,11 +58,11 @@ export async function StopSession(){
     currentSession.activeTab = 0;
 }
 function onSessionTimeout(){
-    _Redirect(`Session Timeout.\nTime left today: ${_GenerateTimerText(dailySession.secondsLeft)}`)
+    _Redirect(`Session limit reached.\nTime left today: ${_GenerateTimerText(dailySession.secondsLeft)}`)
     StopSession();
 }
 function onDailyTimeout(){
-    _Redirect('Daily Timeout');
+    _Redirect('Daily limit reached. \nYou will regain access at midnight');
     StopSession();
 }
 function onAccessBlocked(reason: 'session' | 'daily', tabId: number){
