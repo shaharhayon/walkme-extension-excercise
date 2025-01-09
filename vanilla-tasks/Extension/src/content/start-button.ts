@@ -1,4 +1,4 @@
-import { AddHighlightOnHover, RefreshList } from "./util";
+import { RefreshList } from "./util";
 
 export type StartButtonPosition = {
     top: string,
@@ -7,28 +7,17 @@ export type StartButtonPosition = {
 
 export async function CreateStartButton(){
     const button = document.createElement('button');
+    button.className = 'start-button'
     const icon_when_closed = chrome.runtime.getURL('icons/clipboard-list.png');
-    const startButtonPos: StartButtonPosition = (await chrome.storage.local.get('start-button-pos'))['start-button-pos'];
-
+    const startButtonPos: StartButtonPosition = (await chrome.storage.local.get('start-button-pos'))['start-button-pos'] || {
+        top: '25px',
+        left: '25px'
+    };
     button.style.top = startButtonPos.top
     button.style.left = startButtonPos.left
-    button.style.height = '5vh'
-    button.style.width = '5vh'
-    button.style.opacity = '20%'
     button.style.backgroundImage = `url(${icon_when_closed})`
-    button.style.backgroundColor = 'transparent'
-    button.style.backgroundPosition = 'center'
-    button.style.backgroundSize = 'cover'
-    SetButtonState(button, 'closed')
-    button.style.position = 'fixed'; 
-    button.style.padding = '10px 20px';
-    button.style.color = 'white';
-    button.style.border = 'none';
-    button.style.borderRadius = '5px';
-    button.style.cursor = 'pointer';
-    button.style.zIndex = '9999'
-    AddHighlightOnHover(button);
 
+    SetButtonState(button, 'closed')
     AddDragging(button);
 
     document.body.appendChild(button);
@@ -42,7 +31,6 @@ function SetButtonState (b: HTMLButtonElement, state: 'open' | 'closed') {
 }
 
 function onClick(e: MouseEvent) {
-
     const b = (e.target as HTMLButtonElement);
         if (b.dataset.isDragging === 'true'){
             return;
@@ -54,7 +42,7 @@ function onClick(e: MouseEvent) {
                     div.style.display = 'none';
                     SetButtonState(b, 'closed')
                     break;
-                case 'none':
+                default:
                     div.style.display = 'flex';
                     SetButtonState(b, 'open')
                     break;
@@ -78,8 +66,6 @@ function AddDragging(button: HTMLButtonElement) {
         const startX = e.clientX;
         const startY = e.clientY
         const threshold = 5
-
-        button.style.cursor = 'grabbing';
 
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);

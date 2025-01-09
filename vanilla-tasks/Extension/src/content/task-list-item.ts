@@ -1,28 +1,9 @@
 import { Message, SendMessageToBackground, Task } from "../internal-api";
-import { AddHighlightOnHover } from "./util";
 
 export function CreateTaskListItem(item: Task){
     const li = document.createElement('li')
+    li.className = 'task-item';
     li.id = `item-${item.id}`;
-    li.style.transform = 'none'
-    li.style.display = 'flex';
-    li.style.flexDirection = 'row';
-    li.style.alignItems = 'center';
-    li.style.backgroundColor = '#f0f0f0';
-    li.style.margin = '1%';
-    li.style.padding = '10px';
-    li.style.borderRadius = '5px';
-    li.style.fontSize = '16px';
-    li.style.width = '100%';
-    li.style.height = '40px'
-    
-    li.addEventListener('mouseover', () => {
-        li.style.backgroundColor = '#e0e0e0';
-    });
-    
-    li.addEventListener('mouseout', () => {
-        li.style.backgroundColor = '#f0f0f0';
-    });
 
     li.appendChild(CreateCompleteButton(item));
     li.appendChild(CreateTaskTextField(item));
@@ -33,15 +14,11 @@ export function CreateTaskListItem(item: Task){
 
 function CreateTaskTextField(item: Task){
     const input = document.createElement('input');
+    input.id = 'task-text-input'
+    input.className = 'task-text-input';
     input.type = 'text';
     input.value = item.text;
-    input.style.border = 'none';
-    input.style.backgroundColor = 'transparent';
-    input.style.fontSize = '16px';
-    input.style.width = '100%';
-    input.style.outline = 'none';
-    input.style.fontFamily = '"Poppins", sans-serif';
-    input.style.flexGrow = '1' 
+
     // autoScrollText(input);
 
     input.addEventListener('blur', () => {
@@ -63,18 +40,9 @@ function CreateTaskTextField(item: Task){
 
 function CreateCompleteButton(item: Task){
     const completedButton = document.createElement('button');
+    completedButton.className = 'complete-button';
     completedButton.id = `checkbox-${item.id}`;
-    completedButton.style.backgroundPosition = 'center'
-    completedButton.style.backgroundSize = 'cover'
-    completedButton.style.backgroundColor = 'transparent';
-    completedButton.style.opacity = '50%'
-    completedButton.style.height = '24px'
-    completedButton.style.width = '24px'
-    completedButton.style.cursor = 'pointer';
-    completedButton.style.border = 'none';
-    completedButton.style.marginRight = '10px';
-    completedButton.style.flexGrow = '2'
-    AddHighlightOnHover(completedButton)
+
     if (item.status) {
         alert('x')
     } else {
@@ -99,21 +67,10 @@ function CreateCompleteButton(item: Task){
 
 function CreateDeleteButton(item: Task){
     const url = chrome.runtime.getURL('icons/trash.png');
-    
     const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-button';
     deleteButton.style.backgroundImage = `url(${url})`
-    deleteButton.style.backgroundPosition = 'center'
-    deleteButton.style.backgroundColor = 'transparent';
-    deleteButton.style.opacity = '50%'
-    deleteButton.style.height = '24px'
-    deleteButton.style.width = '24px'
-    deleteButton.style.backgroundSize = 'cover'
-    deleteButton.style.marginLeft = 'auto'; 
-    deleteButton.style.padding = '10px 10px';
-    deleteButton.style.cursor = 'pointer';
-    deleteButton.style.border = 'none';
-    // deleteButton.style.marginRight = '50px'
-    AddHighlightOnHover(deleteButton);
+
     deleteButton.addEventListener('click', function() {
         SendMessageToBackground({
             'action': 'REMOVE_TASK',

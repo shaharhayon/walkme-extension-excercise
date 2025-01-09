@@ -1,16 +1,16 @@
-import type { StartButtonPosition } from "../content/start-button";
+// import type { StartButtonPosition } from "../content/start-button";
 import { Message, MessageWithPath, RestMethod, SendResponseToTab, Task } from "../internal-api";
 
 const SERVER_URL = 'http://localhost:3000';
 
 
-chrome.runtime.onInstalled.addListener(async () => {
-    const pos: StartButtonPosition = {
-        top: '25px',
-        left: '25px'
-    }
-    await chrome.storage.local.set({'start-button-pos': pos});
-});
+// chrome.runtime.onInstalled.addListener(async () => {
+//     const pos: StartButtonPosition = {
+//         top: '25px',
+//         left: '25px'
+//     }
+//     await chrome.storage.local.set({'start-button-pos': pos});
+// });
 
 
 chrome.runtime.onMessage.addListener(async (message: Message, sender, sendResponse) => {

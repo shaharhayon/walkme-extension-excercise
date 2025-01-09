@@ -5,48 +5,16 @@ import { RefreshList } from "./util";
 
 export function CreateMainWindow(){
     const overlay = document.createElement('div');
-    overlay.style.fontFamily = '"Poppins", sans-serif'; 
-    overlay.style.display = 'none'
-    overlay.style.padding = '20px'
-    overlay.style.flexDirection = 'column'
+    overlay.className = 'item-list-container'
     overlay.id = 'item-list-container';
-    overlay.style.position = 'fixed';
-    overlay.style.top = '10px';
-    overlay.style.left = '20px';
-    overlay.style.backgroundColor = '#fff';
-    overlay.style.border = '1px solid #ddd';
-    overlay.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
-    overlay.style.zIndex = '9998';
-    overlay.style.width = '400px';
-    overlay.style.maxHeight = '90%'
-    overlay.style.borderRadius = '50px'
             
     let heading = document.createElement('h1');
-    heading.style.paddingTop = '0px'
-    heading.style.paddingBottom = '30px'
-    heading.style.fontFamily = '"Poppins", sans-serif'; 
-    heading.style.fontSize = '16'
-    heading.style.color = 'lightgrey'
-    heading.style.textShadow = '0 0 5px rgba(0, 0, 0, 0.1)'
-    heading.style.textAlign = 'center'
     heading.innerText = 'Tasks'
-    heading.style.height = '10px'
-    heading.style.flexGrow = '1'
-    heading.style.cursor = 'default'
-
     
     let ul = document.createElement('ul');
+    
+    ul.className = 'open-tasks-list'
     ul.id = 'open-tasks-list'
-    ul.style.listStyleType = 'none';
-    ul.style.margin = '0.5%'
-    ul.style.padding = '20px';
-    ul.style.overflowY = 'scroll'
-    ul.style.border = '1px solid #ddd';
-    ul.style.borderRadius = '15px'
-    ul.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
-    ul.style.maxWidth = '100%'
-    ul.style.maxHeight = '70%'
-
     
     const newTaskField = CreateNewTaskTextField();
 
