@@ -7,6 +7,7 @@ export function CreateNewTaskTextField(){
     const input = document.createElement('input');
     input.className = 'new-task-text'
     input.type = 'text';
+    input.placeholder = 'Enter a new Task'
 
     const AddTaskCommand = () => {
         if (input.value == '') 

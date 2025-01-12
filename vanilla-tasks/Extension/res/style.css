@@ -1,23 +1,23 @@
 /* Style for the container div */
 .new-task-container {
-    display: flex;
-    align-items: center;
-    margin-top: 20px;
-    max-width: 100%;
-    background: transparent;
-    box-sizing: border-box;
+    display: flex !important;
+    align-items: center !important;
+    margin-top: 20px !important;
+    max-width: 100% !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
 }
 
 /* Style for the input field */
 .new-task-text {
-    border: 2px solid #ccc;
-    padding: 10px;
-    border-radius: 20px;
-    background-color: #f0f0f0;
-    font-size: 16px;
-    font-family: 'Poppins', sans-serif;
-    outline: none;
-    flex-grow: 1;
+    border: 2px solid #ccc !important;
+    padding: 10px !important;
+    border-radius: 20px !important;
+    background-color: #f0f0f0 !important;
+    font-size: 16px !important;
+    font-family: 'Poppins', sans-serif !important;
+    outline: none !important;
+    flex-grow: 1 !important;
 }
 
 /* Style for the add task button */
@@ -33,11 +33,13 @@
     background-color: white;
     width: 40px;
     height: 40px;
+    flex-shrink: 0;
 }
 
 /* Style for adding hover effect */
 .add-task-button:hover {
     opacity: 100%;
+    background-color: transparent;
 }
 
 /* Main overlay container */
@@ -56,19 +58,26 @@
     width: 400px;
     max-height: 90%;
     border-radius: 50px;
+    box-sizing: border-box !important;
+    line-height: normal;
 }
 
 /* Heading for the task list */
 .item-list-container h1 {
-    padding-top: 0px;
-    padding-bottom: 30px;
+    padding-top: 0px !important;
+    padding-bottom: 30px !important;
     font-family: 'Poppins', sans-serif;
     font-size: 16px;
-    color: lightgrey;
+    color: lightgrey !important;
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     text-align: center;
-    height: 10px;
-    flex-grow: 1;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: normal !important;
+    height: 10px !important;
+    margin: 0% !important;
+    box-sizing: border-box !important;
+    /* flex-grow: 1; */
     cursor: default;
 }
 
@@ -85,6 +94,8 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     max-width: 100%;
     max-height: 70%;
+    /* box-sizing: unset !important; */
+
 }
 
 /* Style for the start button */
@@ -102,11 +113,13 @@
     border-radius: 5px;
     cursor: pointer;
     z-index: 9999;
+    flex-shrink: 0;
 }
 
 /* Hover effect */
 .start-button:hover {
     opacity: 100%;
+    background-color: transparent;
 }
 
 /* For dragging effect */
@@ -125,6 +138,7 @@
     padding: 10px;
     border-radius: 5px;
     font-size: 16px;
+    box-sizing: unset !important;
     /* width: 100%; */
     /* height: 40px; */
     transition: background-color 0.3s;
@@ -145,6 +159,8 @@
     margin: 0px;
     font-size: 16px;
     width: 100%;
+    color: black;
+    height: fit-content;
     outline: none;
     font-family: "Poppins", sans-serif;
     flex-grow: 1;
@@ -160,12 +176,15 @@
     width: 24px;
     cursor: pointer;
     border: none;
+    padding: 10px;
     margin-right: 10px;
-    flex-grow: 2;
+    flex-grow: 1;
+    flex-shrink: 0;
 }
 
 .complete-button:hover {
     opacity: 100%;
+    background-color: transparent;
 }
 
 /* Style for the delete button */
@@ -180,8 +199,10 @@
     padding: 10px;
     cursor: pointer;
     border: none;
+    flex-shrink: 0;
 }
 
 .delete-button:hover {
     opacity: 100%;
+    background-color: transparent;
 }

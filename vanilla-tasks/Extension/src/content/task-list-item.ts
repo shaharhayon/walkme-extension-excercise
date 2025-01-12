@@ -46,7 +46,13 @@ function CreateCompleteButton(item: Task){
     if (item.status) {
         alert('x')
     } else {
-        completedButton.style.backgroundImage = `url(${chrome.runtime.getURL('icons/check.png')})`
+        completedButton.style.backgroundImage = `url(${chrome.runtime.getURL('icons/circle.png')})`
+        completedButton.addEventListener('mouseout', () => {
+            completedButton.style.backgroundImage = `url(${chrome.runtime.getURL('icons/circle.png')})`;
+        })
+        completedButton.addEventListener('mouseover', () => {
+            completedButton.style.backgroundImage = `url(${chrome.runtime.getURL('icons/check-circle.png')})`;
+        })
     }
     completedButton.addEventListener('click', async (ev: any) => {
         if (item.status){
