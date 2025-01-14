@@ -13,29 +13,36 @@ export function CreateTaskListItem(item: Task){
 }
 
 function CreateTaskTextField(item: Task){
-    const input = document.createElement('input');
-    input.id = 'task-text-input'
-    input.className = 'task-text-input';
-    input.type = 'text';
-    input.value = item.text;
+    const textarea = document.createElement('textarea');
+    textarea.id = 'task-text-input';
+    textarea.className = 'task-text-input';
+    textarea.value = item.text;
+    textarea.rows = 1;
 
-    // autoScrollText(input);
+    const adjustHeight = () => {
+        textarea.style.height = 'auto'; 
+        textarea.style.height = textarea.scrollHeight + 'px';
+    };
 
-    input.addEventListener('blur', () => {
+    requestAnimationFrame(adjustHeight);
+    
+    textarea.addEventListener('input', adjustHeight);
+    textarea.addEventListener('blur', () => {
+        textarea.value = textarea.value.trimEnd()
         SendMessageToBackground({
             action: 'EDIT_TASK',
             data: {
                 id: item.id,
-                text: input.value
+                text: textarea.value
             }
         })
     })
-    input.addEventListener('keyup', function(event) {
-        if (event.key === 'Enter') {
-            input.blur();
-        }
-    });
-    return input;
+    // textarea.addEventListener('keyup', function(event) {
+    //     if (event.key === 'Enter') {
+    //         textarea.blur();
+    //     }
+    // });
+    return textarea;
 }
 
 function CreateCompleteButton(item: Task){
@@ -88,23 +95,3 @@ function CreateDeleteButton(item: Task){
     });
     return deleteButton;
 }
-
-// function autoScrollText(element: HTMLElement) {
-//     const textWidth = element.scrollWidth; // Width of the text inside the container
-//     const containerWidth = element.clientWidth; // Width of the container
-
-//     if (textWidth > containerWidth) {
-//         let scrollPosition = containerWidth;
-//         element.style.whiteSpace = 'nowrap'; // Prevent line breaks
-
-//         function scrollText() {
-//             if (scrollPosition <= -textWidth) {
-//                 scrollPosition = containerWidth; // Reset scroll position once it has fully scrolled off
-//             }
-//             scrollPosition -= 1; // Decrease to scroll left
-//             element.style.transform = `translateX(${scrollPosition}px)`; // Move the text
-//             requestAnimationFrame(scrollText); // Keep animating
-//         }
-//         scrollText(); // Start scrolling
-//     }
-// }
