@@ -12,6 +12,6 @@ const MINUTE = 60;
 export default {
     TRACKED_URL:'facebook.com',
     SESSION_TIMEOUT: 10,
-    SESSION_COOLDOWN: 5,
+    SESSION_COOLDOWN: 60,
     DAILY_TIMEOUT: 25
 } as const;

@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Tasks",
+    "version": "1.0.0",
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"],
+            "css": ["style.css"]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["icons/*.png"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "permissions": [
+        "scripting",
+        "storage"
+    ],
+    "host_permissions": [
+        "http://*/*",
+        "https://*/*"
+    ]
+}
